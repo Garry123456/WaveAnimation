@@ -33,6 +33,15 @@
     <ClInclude Include="Resource.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="WaterEffect.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DIB.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="stdex_vector.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="WaveAnimation.cpp">
@@ -42,6 +51,12 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="stdafx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="WaterEffect.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DIB.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
@@ -59,7 +74,7 @@
     <Image Include="res\WaveAnimation.ico">
       <Filter>资源文件</Filter>
     </Image>
-    <Image Include="..\..\..\$$\sam\131.bmp">
+    <Image Include="cat.bmp">
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>

@@ -4,6 +4,8 @@
 
 #pragma once
 
+#define ID_EFFECTTIMER 1111
+#define ID_DROPTIMER 1112
 
 // CWaveAnimationDlg 对话框
 class CWaveAnimationDlg : public CDialogEx
@@ -21,12 +23,9 @@ public:
 	virtual void DoDataExchange(CDataExchange* pDX);	// DDX/DDV 支持
 
 private:
-	CDC *m_BackBuffer;
-	CBitmap	*m_Bitmap;
-	CBitmap	*m_OldBitmap;
-	CString m_title;
-	CFont m_fontTitle;
-	CSize m_szClient;	
+	CWaterEffect m_waterEffect;
+	CDib m_renderSrc;
+	CDib m_renderDest;
 
 // 实现
 protected:
@@ -38,6 +37,7 @@ protected:
 	afx_msg HCURSOR OnQueryDragIcon();
 	DECLARE_MESSAGE_MAP()
 public:
-	afx_msg int OnCreate(LPCREATESTRUCT lpCreateStruct);
-	afx_msg void OnDestroy();
+	afx_msg void OnTimer(UINT_PTR nIDEvent);
+	afx_msg void OnClose();
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
 };

@@ -18,7 +18,7 @@
 
 #include <afxwin.h>         // MFC 核心组件和标准组件
 #include <afxext.h>         // MFC 扩展
-
+#include <afxctl.h>
 
 
 
@@ -34,8 +34,12 @@
 
 
 
+#include <memory>
 
+#include "stdex_vector.h"
 
+#include "DIB.h"
+#include "WaterEffect.h"
 
 
 

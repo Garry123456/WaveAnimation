@@ -30,8 +30,11 @@ void CWaveAnimationDlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CWaveAnimationDlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
-	ON_WM_CREATE()
-	ON_WM_DESTROY()
+//	ON_WM_CREATE()
+//	ON_WM_DESTROY()
+	ON_WM_TIMER()
+	ON_WM_CLOSE()
+	ON_WM_MOUSEMOVE()
 END_MESSAGE_MAP()
 
 
@@ -46,10 +49,14 @@ BOOL CWaveAnimationDlg::OnInitDialog()
 	SetIcon(m_hIcon, TRUE);			// 设置大图标
 	SetIcon(m_hIcon, FALSE);		// 设置小图标
 
-	// TODO: 在此添加额外的初始化代码
-	m_title.LoadString(IDS_STRING_TITLE);
-	m_fontTitle.CreateFont(25, 14, 0, 0, 16, FALSE, FALSE, FALSE, DEFAULT_CHARSET,
-		OUT_DEFAULT_PRECIS, CLIP_DEFAULT_PRECIS, DEFAULT_QUALITY, DEFAULT_PITCH, _T("楷体"));
+	CPictureHolder tmpPic;
+	tmpPic.CreateFromBitmap(IDB_BITMAP_CAT);
+	m_renderSrc.Create32BitFromPicture(&tmpPic, 440, 440);
+	m_renderDest.Create32BitFromPicture(&tmpPic, 440, 440);
+
+	m_waterEffect.Create(440, 440);
+	SetTimer(ID_EFFECTTIMER, 30, NULL);
+	SetTimer(ID_DROPTIMER, 1500, NULL);
 
 	return TRUE;  // 除非将焦点设置到控件，否则返回 TRUE
 }
@@ -79,17 +86,7 @@ void CWaveAnimationDlg::OnPaint()
 	}
 	else
 	{
-		CPaintDC dc(this);
-		m_BackBuffer->BitBlt(0, 0, m_szClient.cx, m_szClient.cy, nullptr, 0, 0, WHITENESS);
-		static CRect txtRect(10, 10, 200, 50);
-		auto oldM = m_BackBuffer->SetBkMode(TRANSPARENT);
-		auto oldF = m_BackBuffer->SelectObject(m_fontTitle);
-		auto oldC = m_BackBuffer->SetTextColor(RGB(200, 14, 57));
-		m_BackBuffer->DrawText(m_title, txtRect, DT_LEFT);
-		m_BackBuffer->SetTextColor(oldC);
-		m_BackBuffer->SelectObject(oldF);
-		m_BackBuffer->SetBkMode(oldM);
-		dc.BitBlt(0, 0, m_szClient.cx, m_szClient.cy, m_BackBuffer, 0, 0, SRCCOPY);
+		CDialogEx::OnPaint();
 	}
 }
 
@@ -100,35 +97,58 @@ HCURSOR CWaveAnimationDlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
-
-
-int CWaveAnimationDlg::OnCreate(LPCREATESTRUCT lpCreateStruct)
+void CWaveAnimationDlg::OnTimer(UINT_PTR nIDEvent)
 {
-	if (CDialogEx::OnCreate(lpCreateStruct) == -1)
-		return -1;
+	if (nIDEvent == ID_EFFECTTIMER)
+	{
+		m_waterEffect.Render((DWORD*)m_renderSrc.GetDIBits(), (DWORD*)m_renderDest.GetDIBits());
+		CClientDC dc(this);
+		CPoint ptOrigin(15, 20);
+		m_renderDest.Draw(&dc, ptOrigin);
+	}
 
-	m_BackBuffer = CDC::FromHandle(::CreateCompatibleDC(nullptr));
-	CDC *dc = GetDC();
-	CRect rt;
-	GetClientRect(rt);
-	m_szClient = rt.Size();
-	m_Bitmap = CBitmap::FromHandle(::CreateCompatibleBitmap(dc->m_hDC, m_szClient.cx, m_szClient.cy));
-	ReleaseDC(dc);
-	m_OldBitmap = m_BackBuffer->SelectObject(m_Bitmap);
+	if (nIDEvent == ID_DROPTIMER)
+	{
+		static CRect r;
+		r.left = 15;
+		r.top = 20;
+		r.right = r.left + m_renderSrc.GetWidth();
+		r.bottom = r.top + m_renderSrc.GetHeight();
+		m_waterEffect.Blob(random(r.left, r.right), random(r.top, r.bottom), 5, 800, m_waterEffect.m_iHpage);
+	}
 
-	return 0;
+	CDialogEx::OnTimer(nIDEvent);
 }
 
 
-void CWaveAnimationDlg::OnDestroy()
+void CWaveAnimationDlg::OnClose()
 {
-	CDialogEx::OnDestroy();
+	KillTimer(ID_EFFECTTIMER);
+	KillTimer(ID_DROPTIMER);
 
-	m_BackBuffer->SelectObject(m_OldBitmap);
-	m_BackBuffer->DeleteDC();
-	m_BackBuffer = nullptr;
-	m_Bitmap->DeleteObject();
-	m_Bitmap = nullptr;
+	CDialogEx::OnClose();
+}
 
-	PostQuitMessage(0);
+
+void CWaveAnimationDlg::OnMouseMove(UINT nFlags, CPoint point)
+{
+	static CRect r;
+	r.left = 15;
+	r.top = 20;
+	r.right = r.left + m_renderSrc.GetWidth();
+	r.bottom = r.top + m_renderSrc.GetHeight();
+
+	if (r.PtInRect(point) == TRUE)
+	{
+		// dibs are drawn upside down...
+		point.y -= 20;
+		point.y = 440 - point.y;
+
+		if (nFlags & MK_LBUTTON)
+			m_waterEffect.Blob(point.x - 15, point.y, 10, 800, m_waterEffect.m_iHpage);
+		else
+			m_waterEffect.Blob(point.x - 15, point.y, 5, 400, m_waterEffect.m_iHpage);
+	}
+
+	CDialogEx::OnMouseMove(nFlags, point);
 }
